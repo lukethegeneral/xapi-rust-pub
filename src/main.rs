@@ -1,6 +1,5 @@
 use serde_json::json;
 use xtb::timestamp_to_datetime;
-//use xtb::xapi_definitions::commands_main::{LoginRequest, LoginResponse, LogoutRequest, RespErr};
 use xtb::xapi_definitions::commands_main::*;
 use xtb::xapi_definitions::commands_stream::*;
 use std::thread;
@@ -67,11 +66,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         "command": "getSymbol",
         "arguments": {
             "symbol": "RHM.DE_4"
-            //"symbol": "RHM.DE_9"
         },
     });
     println!("\nRequest-> {}", req);
-    //writer.write_all(&req.to_string().as_bytes()).await?;
     xapi_client.socket.write_all(&req.to_string().as_bytes()).await?;
 
     let mut buf = vec![0; 1024];
@@ -120,9 +117,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         GetTickPrices {
             stream_session_id: String::from(&response_login.stream_session_id).into(),
             symbol: "EURUSD".into(),
-            //min_arrival_time: None,
             min_arrival_time: Some(5000),
-            //max_level: None, 
             max_level: Some(1), 
         }
     );
@@ -216,5 +211,4 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     loop {}
 
-    //Ok(())
 }
