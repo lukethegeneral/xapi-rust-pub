@@ -20,7 +20,7 @@ use xtb::XApiClient;
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     intro("User credentials")?;
-    let user_id: String = input("User Id").default_input("14451048").placeholder("***").interact()?;
+    let user_id: String = input("User Id").default_input("16794637").placeholder("***").interact()?;
     let password = password("Password").mask('▪').interact()?;
     outro("OK")?;
 
@@ -116,7 +116,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let request_stream = RequestStream::GetTickPrices(
         GetTickPrices {
             stream_session_id: String::from(&response_login.stream_session_id).into(),
-            symbol: "EURUSD".into(),
+            symbol: "RHM.DE_4".into(),
             min_arrival_time: Some(5000),
             max_level: Some(1), 
         }
@@ -170,7 +170,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                                     Ok(res) => {
                                         match res {
                                             ResponseStream::TickPrices(tick) => {
+                                                println!("Tick prices [ask]: {}", tick.data.ask);
                                                 println!("Tick prices [bid]: {}", tick.data.bid);
+                                                println!("Tick prices [low]: {}", tick.data.low);
+                                                println!("Tick prices [high]: {}", tick.data.high);
                                             }
                                             ResponseStream::KeepAlive(keep) => {
                                                 println!("Keep alive [timestamp][{}][{}]"
@@ -180,7 +183,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
                                             }
                                             ResponseStream::Candle(candle) => {
-                                                println!("Candle [close]: {}", candle.data.close);
+                                                println!("Candle [close]: {}", candle.data.open);
                                             }
                                             _ => {
                                                 println!("Response stream: {:?}", res);

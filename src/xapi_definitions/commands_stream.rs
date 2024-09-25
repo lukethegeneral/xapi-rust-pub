@@ -38,7 +38,6 @@ pub struct GetCandles {
 #[serde(rename_all = "camelCase")]
 pub struct GetCandlesResponse {
     pub close: f32,
-//    pub ctm: SystemTime,
     pub ctm: i64,
     pub ctm_string: String,
     pub high: f32,
