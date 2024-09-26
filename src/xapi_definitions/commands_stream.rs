@@ -11,6 +11,7 @@ pub enum RequestStream {
     GetKeepAlive(GetKeepAlive),
     GetTickPrices(GetTickPrices),
     GetTrades(GetTrades),
+    GetTradeStatus(GetTradeStatus),
 }
 
 #[derive(Debug, Deserialize, Serialize)]
@@ -21,6 +22,7 @@ pub enum ResponseStream {
     KeepAlive(GetResponse<GetKeepAliveResponse>),
     TickPrices(GetResponse<GetTickPricesResponse>),
     Trade(GetResponse<GetTradesReponse>),
+    TradeStatus(GetResponse<GetTradeStatusResponse>),
 }
 
 #[derive(Debug, Deserialize, Serialize)]
@@ -168,4 +170,29 @@ pub enum r#Type {
     Close = 2,
     Modify = 3,
     Delete = 4,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct GetTradeStatus {
+    pub stream_session_id: String,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct GetTradeStatusResponse {
+    pub custom_comment: Option<String>,
+    pub message: Option<String>,
+    pub order: u32,
+    pub price: f32,
+    pub request_status: RequestStatus,
+}
+
+#[derive(Debug, Deserialize_repr, Serialize_repr)]
+#[repr(u8)]
+pub enum RequestStatus {
+    Error = 0,
+    Pending = 1,
+    Accepted = 3,
+    Rejected = 4,
 }
