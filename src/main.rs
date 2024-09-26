@@ -1,5 +1,6 @@
 use serde_json::json;
 use xtb::timestamp_to_datetime;
+use xtb::xapi_definitions::commands_common::*;
 use xtb::xapi_definitions::commands_main::*;
 use xtb::xapi_definitions::commands_stream::*;
 use std::thread;
