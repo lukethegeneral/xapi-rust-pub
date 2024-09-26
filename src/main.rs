@@ -20,7 +20,7 @@ use xtb::XApiClient;
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     intro("User credentials")?;
-    let user_id: String = input("User Id").default_input("14451048").placeholder("***").interact()?;
+    let user_id: String = input("User Id").default_input("16794637").placeholder("***").interact()?;
     let password = password("Password").mask('▪').interact()?;
     outro("OK")?;
 
@@ -90,7 +90,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let get_commission_def = 
         Request::GetCommissionDef(
             GetCommissionDef { 
-                symbol: "GOLD".into(), 
+                symbol: "RHM.DE_9".into(), 
                 volume: 20000000.0, 
             } 
     );
@@ -112,17 +112,27 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         xapi_client.response_data::<GetCurrentUserDataResponse>(&get_current_user_data).await?;
 
     println!("GetCurrentUserData:\n{:?}", get_current_user_data_response);
+
+    /*
+    Stream commands
+     */
     
     let request_stream = RequestStream::GetTickPrices(
         GetTickPrices {
             stream_session_id: String::from(&response_login.stream_session_id).into(),
-            symbol: "EURUSD".into(),
+            symbol: "RHM.DE_9".into(),
             min_arrival_time: Some(5000),
             max_level: Some(1), 
         }
     );
     xapi_client_stream.execute_command(&request_stream).await?;
 
+    let request_stream = RequestStream::GetTrades(
+        GetTrades {
+            stream_session_id: String::from(&response_login.stream_session_id).into(),
+        }
+    );
+    xapi_client_stream.execute_command(&request_stream).await?;
 
     let request_stream = RequestStream::GetBalance(
         GetBalance {
@@ -130,16 +140,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         }
     );
     xapi_client_stream.execute_command(&request_stream).await?;
-
-
-    let get_candles = RequestStream::GetCandles(
-        GetCandles {
-            stream_session_id: String::from(&response_login.stream_session_id).into(),
-            symbol: "EURUSD".into(),
-        }
-    );
-    xapi_client_stream.execute_command(&get_candles).await?;
-    
 
     let request_stream = RequestStream::GetKeepAlive(
         GetKeepAlive {
@@ -149,10 +149,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     xapi_client_stream.execute_command(&request_stream).await?;
 
     tokio::spawn(async move {
-        let mut buf = vec![0; 1024];
+        let mut buf = vec![0; 2024];
         let mut retries = 0;
         loop {
-           // thread::sleep(Duration::from_millis(200));
+            //thread::sleep(Duration::from_millis(200));
             match xapi_client_stream.socket.read(&mut buf).await {
                 Ok(0) => {
                     println!("spawn 0");
@@ -170,7 +170,12 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                                     Ok(res) => {
                                         match res {
                                             ResponseStream::TickPrices(tick) => {
-                                                println!("Tick prices [bid]: {}", tick.data.bid);
+                                                println!("Tick prices [ask]: {}, [bid]: {}, [low]: {}, [high]: {}"
+                                                            , tick.data.ask
+                                                            , tick.data.bid
+                                                            , tick.data.low
+                                                            , tick.data.high
+                                                        );
                                             }
                                             ResponseStream::KeepAlive(keep) => {
                                                 println!("Keep alive [timestamp][{}][{}]"
@@ -179,9 +184,44 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                                                         );
 
                                             }
-                                            ResponseStream::Candle(candle) => {
-                                                println!("Candle [close]: {}", candle.data.close);
+                                            ResponseStream::Balance(balance) => {
+                                                println!("Balance [balance]: {}, [credit]: {}, [equity]: {}, [margin_free]: {}"
+                                                            , balance.data.balance 
+                                                            , balance.data.credit
+                                                            , balance.data.equity
+                                                            , balance.data.margin_free
+                                                        );
                                             }
+                                            ResponseStream::Trade(trade) => {
+                                                match trade.data.cmd {
+                                                    Cmd::Buy => {
+                                                        println!("Trade [position]: {}, [transaction id]: {}, [open_time]: {}, [open_price]: {}, [symbol]: {}, [profit]: {}"
+                                                        			, trade.data.position
+                                                                    , trade.data.order2
+                                                                    , timestamp_to_datetime(trade.data.open_time)
+                                                                    , trade.data.open_price
+                                                                    , trade.data.symbol
+                                                                    , trade.data.profit.unwrap_or_default()
+                                                                );
+                                                    },
+                                                    Cmd::Sell => {
+                                                        println!("Trade [position]: {}, [transaction id]: {}, [close_time]: {}, [close_price]: {}, [symbol]: {}, [profit]: {}"
+                                                        			, trade.data.position
+                                                                    , trade.data.order2
+                                                                    , timestamp_to_datetime(trade.data.close_time.unwrap_or_default())
+                                                                    , trade.data.close_price
+                                                                    , trade.data.symbol
+                                                                    , trade.data.profit.unwrap_or_default()
+                                                                );
+                                                    },
+                                                    _ => {
+                                                        println!("Trade [operation code]: {:#?}"
+                                                                    , trade.data.cmd
+                                                                );
+                                                    } 
+                                                }
+                                            }
+                                            // Any other response
                                             _ => {
                                                 println!("Response stream: {:?}", res);
                                             }
