@@ -1,4 +1,5 @@
 use serde::{Deserialize, Serialize};
+use serde_repr::*;
 
 #[derive(Debug, Deserialize, Serialize)]
 //#[serde(rename_all = "lowercase", tag = "command", content = "arguments")]
@@ -16,9 +17,10 @@ pub enum RequestStream {
 #[serde(rename_all="camelCase", tag = "command")]
 pub enum ResponseStream {
     Candle(GetResponse<GetCandlesResponse>),
-    TickPrices(GetResponse<GetTickPricesResponse>),
     Balance(GetResponse<GetBalanceResponse>),
     KeepAlive(GetResponse<GetKeepAliveResponse>),
+    TickPrices(GetResponse<GetTickPricesResponse>),
+    Trade(GetResponse<GetTradesReponse>),
 }
 
 #[derive(Debug, Deserialize, Serialize)]
@@ -100,11 +102,70 @@ pub struct GetTickPricesResponse {
     pub spread_raw: f32,
     pub spread_table: f32,
     pub symbol: String,
-    pub timestamp: u64,
+    pub timestamp: i64,
 }
 
 #[derive(Debug, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct GetTrades {
     pub stream_session_id: String,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+pub struct GetTradesReponse {
+   pub  close_price: f32,
+   pub  close_time: Option<i64>,
+   pub  closed: bool,
+   pub  cmd: Cmd,
+   pub  comment: String,
+   pub  commission: f32,
+   #[serde(rename = "customComment")]
+   pub  custom_comment: Option<String>,
+   pub  digits: u16,
+   pub  expiration: Option<u32>,
+   pub  margin_rate: f32,
+   pub  offset: u16,
+   pub  open_price: f32,
+   pub  open_time: i64,
+   pub  order: u32,
+   pub  order2: u32,
+   pub  position: u32,
+   pub  profit: Option<f32>,
+   pub  sl: f32,
+   pub  state: State,
+   pub  storage: f32,
+   pub  symbol: String,
+   pub  tp: f32,
+   pub  r#type: r#Type,
+   pub  volume: f32, 
+}
+
+#[derive(Debug, Deserialize_repr, Serialize_repr)]
+#[serde(rename_all = "SCREAMING_SNAKE_CASE")]
+#[repr(u8)]
+pub enum Cmd {
+    Buy = 0,
+    Sell = 1,
+    BuyLimit = 2,
+    SellLimit = 3,
+    BuyStop = 4,
+    SellStop = 5,
+    Balance = 6,
+    Credit = 7,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+pub enum State {
+    Modified,
+    Deleted,
+}
+
+#[derive(Debug, Deserialize_repr, Serialize_repr)]
+#[repr(u8)]
+pub enum r#Type {
+    Open = 0,
+    Pending = 1,
+    Close = 2,
+    Modify = 3,
+    Delete = 4,
 }

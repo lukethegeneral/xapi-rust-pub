@@ -48,7 +48,6 @@ impl XApiClient {
         Ok(Self { socket: socket })
     }
 
-
     pub async fn execute_command<T: Execute + Serialize>(
         &mut self,
         request: &T,
@@ -153,4 +152,3 @@ impl XApiClient {
     }
 
 }
-
