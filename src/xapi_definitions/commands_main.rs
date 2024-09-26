@@ -1,11 +1,14 @@
+use super::commands_common::{Cmd, Type};
+
 use serde::{Deserialize, Serialize};
+use serde_repr::*;
 
 pub trait ValidResponse {}
-/*
+
 impl ValidResponse for LoginResponse{}
 impl ValidResponse for GetCommissionDefResponse{}
+impl ValidResponse for GetCurrentUserDataResponse{}
 impl ValidResponse for ErrorResponse{}
-*/
 
 
 #[derive(Debug, Deserialize, Serialize)]
@@ -19,6 +22,7 @@ pub enum Request {
     GetCommissionDef(GetCommissionDef),
     GetCurrentUserData(GetCurrentUserData),
 }
+
 #[derive(Debug, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
 #[serde(untagged)]
@@ -30,11 +34,9 @@ pub enum Response<T:ValidResponse + Serialize> {
 
 #[derive(Debug, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
-#[serde(untagged)]
-pub enum Response2 {
-    Login(LoginResponse),
-    GetCommissionDef(GetResponse<GetCommissionDefResponse>),
-    Error(ErrorResponse),
+pub struct GetResponse <T: Serialize> {
+    pub status: bool,
+    pub return_data: T, 
 }
 
 #[derive(Debug, Deserialize, Serialize)]
@@ -93,21 +95,6 @@ pub struct GetCommissionDef {
 
 #[derive(Debug, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
-pub enum GetCommissionDefE {
-    Request(GetCommissionDef),
-    Response(GetResponse<GetCommissionDefResponse>),
-    Error(ErrorResponse),
-}
-
-#[derive(Debug, Deserialize, Serialize)]
-#[serde(rename_all = "camelCase")]
-pub struct GetResponse <T: Serialize> {
-    pub status: bool,
-    pub return_data: T, 
-}
-
-#[derive(Debug, Deserialize, Serialize)]
-#[serde(rename_all = "camelCase")]
 pub struct GetCommissionDefResponse {
     pub commission: f32,
     pub rate_of_exchange: f32,
@@ -128,4 +115,21 @@ pub struct GetCurrentUserDataResponse {
     pub leverage_multiplier: f32,
     pub spread_type: Option<String>,
     pub trailing_stop: bool,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct TradeTransaction {
+   pub  cmd: Cmd,
+   #[serde(rename = "customComment")]
+   pub  custom_comment: Option<String>,
+   pub  expiration: Option<u32>,
+   pub  offset: u16,
+   pub  order: u32,
+   pub  price: f32,
+   pub  sl: f32,
+   pub  symbol: String,
+   pub  tp: f32,
+   pub  r#type: r#Type,
+   pub  volume: f32, 
 }

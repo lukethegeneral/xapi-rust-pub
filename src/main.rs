@@ -1,5 +1,6 @@
 use serde_json::json;
 use xtb::timestamp_to_datetime;
+use xtb::xapi_definitions::commands_common::*;
 use xtb::xapi_definitions::commands_main::*;
 use xtb::xapi_definitions::commands_stream::*;
 use std::thread;
@@ -134,6 +135,21 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     );
     xapi_client_stream.execute_command(&request_stream).await?;
 
+    let request_stream = RequestStream::GetTradeStatus(
+        GetTradeStatus {
+            stream_session_id: String::from(&response_login.stream_session_id).into(),
+        }
+    );
+    xapi_client_stream.execute_command(&request_stream).await?;
+
+    let request_stream = RequestStream::GetCandles(
+        GetCandles {
+            symbol: "EURUSD".into(),
+            stream_session_id: String::from(&response_login.stream_session_id).into(),
+        }
+    );
+    xapi_client_stream.execute_command(&request_stream).await?;
+
     let request_stream = RequestStream::GetBalance(
         GetBalance {
             stream_session_id: String::from(&response_login.stream_session_id).into(),
@@ -220,6 +236,16 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                                                                 );
                                                     } 
                                                 }
+                                            }
+                                            ResponseStream::TradeStatus(trade_status) => {
+                                                println!("Trade status [comment]: {}, [message]: {}, [order]: {}, [price] : {}, [request status]: {:#?}"
+                                                            , trade_status.data.custom_comment.unwrap_or_default()
+                                                            , trade_status.data.message.unwrap_or_default()
+                                                            , trade_status.data.order
+                                                            , trade_status.data.price
+                                                            , trade_status.data.request_status
+                                                        );
+
                                             }
                                             // Any other response
                                             _ => {
