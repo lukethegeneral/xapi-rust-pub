@@ -94,41 +94,6 @@ impl XApiClient {
         }
     }
 
-    pub async fn get_response2<T: ValidResponse + Serialize + for<'de> Deserialize<'de>> (
-        &mut self,
-        response_size: usize,
-    ) -> Result<T, Box<dyn Error>> {
-        let mut buf = vec![0; response_size];
-
-        match self.socket.read(&mut buf).await {
-            // Return value of `Ok(0)` signifies that the remote has closed
-            Ok(0) => {
-                eprintln!("Connection closed");
-                return Err("error")?;
-            }
-            Ok(n) => {
-                let str =  String::from_utf8((&buf[..n]).to_vec())?;
-                println!("Response raw [{}]: {:?}", n, str);
-                match serde_json::from_str(&str) {
-                    Ok(res) => {
-                        Ok(res)
-                    }
-                    Err(err) => {
-                        //eprintln!("Failed to convert response request -> {:?}\n{:?}", str, err);
-                        let error = format!("Failed to convert response request -> {}. {}", str, err);
-                        Err(error)?
-                    }
-                }
-            }
-            Err(e) => {
-                // Unexpected socket error. There isn't much we can do here so just stop processing.
-                eprintln!("Failed to read from socket err = {:?}", e);
-                return Err(e)?;
-            }
-        }
-    }
-
-
 //    pub async fn response_login <T: ValidResponse + Serialize + for<'de> Deserialize<'de>> (
     pub async fn response_login (
         &mut self,
