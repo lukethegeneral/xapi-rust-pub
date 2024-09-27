@@ -2,7 +2,7 @@ pub mod commands_common;
 pub mod commands_main;
 pub mod commands_stream;
 
-use serde::{Deserialize, Serialize};
+use serde::Serialize;
 use std::error::Error;
 
 use commands_main::Request;

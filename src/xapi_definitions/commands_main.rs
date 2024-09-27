@@ -1,7 +1,6 @@
 use super::commands_common::{Cmd, Type};
 
 use serde::{Deserialize, Serialize};
-use serde_repr::*;
 
 pub trait ValidResponse {}
 

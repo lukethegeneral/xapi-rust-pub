@@ -6,7 +6,7 @@ use xtb::xapi_definitions::commands_stream::*;
 use std::thread;
 use std::time::Duration;
 
-use tokio::io::{AsyncReadExt, AsyncWriteExt, split};
+use tokio::io::{AsyncReadExt, AsyncWriteExt};
 
 use cliclack::{intro, outro, input, password};
 
