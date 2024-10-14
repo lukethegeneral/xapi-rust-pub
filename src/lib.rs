@@ -16,9 +16,11 @@ use chrono::prelude::*;
 
 pub fn timestamp_to_datetime(timestamp: i64) -> String {
     let datetime = DateTime::from_timestamp_millis(timestamp);
+    let offset_in_sec = Local::now().offset().local_minus_utc();
+    let offset = FixedOffset::east_opt(offset_in_sec).unwrap();
     
     match datetime {
-        Some(datetime) => datetime.format("%Y-%m-%d %H:%M:%S").to_string(),
+        Some(datetime) => datetime.with_timezone(&offset).format("%Y-%m-%d %H:%M:%S").to_string(),
         None => "".to_string(),
     }
 }
