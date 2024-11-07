@@ -14,7 +14,7 @@ static XAPI_ADDRESS: &str = "xapi.xtb.com";
 static XAPI_PORT: &str = "5124";
 static XAPI_PORT_STREAM: &str = "5125";
 
-const MAX_RETRIES: u32 = 3;
+const MAX_RETRIES: u16 = 3;
 const RES_BUF_SIZE: usize = 2024;
 
 use xtb::XApiClient;
