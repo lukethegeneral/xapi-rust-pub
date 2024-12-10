@@ -55,7 +55,6 @@ impl XApiClient {
         request: &T,
     ) -> Result<(), Box<dyn Error>> {
         let request = request.command()?;
-        println!("\nRequest-> {}", request);
         self.socket.write_all(&request.as_bytes()).await?;
 
         Ok(())

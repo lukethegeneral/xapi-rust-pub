@@ -10,6 +10,13 @@ use tokio::io::{AsyncReadExt, AsyncWriteExt};
 
 use cliclack::{intro, outro, input, password};
 
+use uuid::Uuid;
+use pbkdf2::{
+    password_hash::{PasswordHash, PasswordHasher, PasswordVerifier, SaltString},
+    Pbkdf2,
+};
+use rand_core::OsRng;
+
 static XAPI_ADDRESS: &str = "xapi.xtb.com";
 static XAPI_PORT: &str = "5124";
 static XAPI_PORT_STREAM: &str = "5125";
@@ -23,13 +30,24 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     intro("User credentials")?;
     let user_id: String = input("User Id").default_input("16794637").placeholder("***").interact()?;
-    let password = password("Password").mask('▪').interact()?;
+    let mut password = password("Password").mask('▪').interact()?;
     outro("OK")?;
+
+    // Hash password
+    let salt = SaltString::generate(&mut OsRng);
+    let password_hash = Pbkdf2
+        .hash_password(password.as_bytes(), &salt)
+        .map_err(|e| format!("Failed to hash password.\n{e:?}"))?
+        .to_string();
+    // Verify password against PHC string
+    let parsed_hash = PasswordHash::new(&password_hash)
+        .map_err(|e| format!("Failed to verify password.\n{e:?}"))?;
+    assert!(Pbkdf2.verify_password(password.as_bytes(), &parsed_hash).is_ok());
 
     let login_req = Request::Login(
         LoginRequest {
             user_id: user_id.into(),
-            password: password.into(),
+            password: password.to_string(),
             app_id: "test".into(),
             app_name: "XTB_test".into(),
         }
