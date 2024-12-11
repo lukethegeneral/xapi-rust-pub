@@ -150,6 +150,7 @@ pub struct GetTradeStatus {
 #[derive(Debug, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct GetTradeStatusResponse {
+    #[serde(rename = "customComment")]
     pub custom_comment: Option<String>,
     pub message: Option<String>,
     pub order: u32,

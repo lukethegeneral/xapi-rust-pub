@@ -14,6 +14,7 @@ where
 {
     fn command(&self) -> Result<String, Box<dyn Error>> {
         let json_request = serde_json::to_string(&self)?;
+        println!("json_request: {:#?}", json_request);
         Ok(json_request)
     }
 }

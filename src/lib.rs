@@ -60,7 +60,7 @@ impl XApiClient {
         Ok(())
     }
 
-    pub async fn get_response<T: ValidResponse + Serialize + for<'de> Deserialize<'de>> (
+    async fn get_response<T: ValidResponse + Serialize + for<'de> Deserialize<'de>> (
         &mut self,
         response_size: usize,
     ) -> Result<Response<T>, Box<dyn Error>> {

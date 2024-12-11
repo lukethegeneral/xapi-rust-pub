@@ -30,10 +30,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     intro("User credentials")?;
     let user_id: String = input("User Id").default_input("16794637").placeholder("***").interact()?;
-    let mut password = password("Password").mask('▪').interact()?;
+    let password = password("Password").mask('▪').interact()?;
     outro("OK")?;
 
     // Hash password
+    /*
     let salt = SaltString::generate(&mut OsRng);
     let password_hash = Pbkdf2
         .hash_password(password.as_bytes(), &salt)
@@ -43,6 +44,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let parsed_hash = PasswordHash::new(&password_hash)
         .map_err(|e| format!("Failed to verify password.\n{e:?}"))?;
     assert!(Pbkdf2.verify_password(password.as_bytes(), &parsed_hash).is_ok());
+    */
 
     let login_req = Request::Login(
         LoginRequest {
@@ -105,6 +107,44 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut response_raw = String::new(); 
     xapi_client.get_response_raw(&mut response_raw, 1024).await?;
     println!("Response raw <- {:?}", response_raw);
+
+    //EURUSD
+    let get_symbol = Request::GetSymbol(
+        GetSymbol {
+            symbol: "EURUSD".into(),
+        }
+    );
+    println!("Request {:?}", get_symbol);
+
+    xapi_client.execute_command(&get_symbol).await?;
+    let mut response_raw = String::new(); 
+    xapi_client.get_response_raw(&mut response_raw, 1024).await?;
+    println!("Response raw <- {:?}", response_raw);
+
+    let trade_transaction = 
+        Request::TradeTransaction(
+            TradeTransaction {
+                trade_trans_info: 
+                    TradeTransInfo {
+                        cmd: Cmd::Buy,
+                        custom_comment: Some("rust_transaction".into()),
+                        expiration: 0,
+                        offset: 0,
+                        order: 0,
+                        price: 1.0512,
+                        sl: 0.0,
+                        symbol: "EURUSD".into(),
+                        tp: 0.0,
+                        r#type: Type::Open,
+                        volume: 0.01,
+                    }
+            }
+        );
+    println!("Transaction request: {:#?}", trade_transaction);
+
+    let transaction_response = 
+        xapi_client.response_data::<TradeTransactionResponse>(&trade_transaction).await?;
+    println!("Transaction response: {:?}", transaction_response);
 
     //Get commission_def
     let get_commission_def = 
