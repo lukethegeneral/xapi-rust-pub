@@ -3,6 +3,7 @@ use xtb::timestamp_to_datetime;
 use xtb::xapi_definitions::commands_common::*;
 use xtb::xapi_definitions::commands_main::*;
 use xtb::xapi_definitions::commands_stream::*;
+use xtb::xapi_definitions::Execute;
 use std::thread;
 use std::time::Duration;
 
@@ -22,14 +23,14 @@ static XAPI_PORT: &str = "5124";
 static XAPI_PORT_STREAM: &str = "5125";
 
 const MAX_RETRIES: u16 = 3;
-const RES_BUF_SIZE: usize = 2024;
+const RES_BUF_SIZE: usize = 4024;
 
 use xtb::XApiClient;
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     intro("User credentials")?;
-    let user_id: String = input("User Id").default_input("16794637").placeholder("***").interact()?;
+    let user_id: String = input("User Id").default_input("17177843").placeholder("***").interact()?;
     let password = password("Password").mask('▪').interact()?;
     outro("OK")?;
 
@@ -92,6 +93,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     });
     println!("\nRequest-> {}", req);
     xapi_client.socket.write_all(&req.to_string().as_bytes()).await?;
+    thread::sleep(Duration::from_millis(200));
 
     let mut buf = vec![0; 1024];
     let n = xapi_client.socket.read(&mut buf).await?;
@@ -104,6 +106,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         }
     );
     xapi_client.execute_command(&get_symbol).await?;
+    thread::sleep(Duration::from_millis(200));
     let mut response_raw = String::new(); 
     xapi_client.get_response_raw(&mut response_raw, 1024).await?;
     println!("Response raw <- {:?}", response_raw);
@@ -117,26 +120,29 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("Request {:?}", get_symbol);
 
     xapi_client.execute_command(&get_symbol).await?;
+    thread::sleep(Duration::from_millis(200));
     let mut response_raw = String::new(); 
     xapi_client.get_response_raw(&mut response_raw, 1024).await?;
     println!("Response raw <- {:?}", response_raw);
 
+    //Open transaction
+    /*
     let trade_transaction = 
         Request::TradeTransaction(
             TradeTransaction {
                 trade_trans_info: 
                     TradeTransInfo {
+                        symbol: "EURUSD".into(),
+                        volume: 0.01,
+                        price: 1.05,
                         cmd: Cmd::Buy,
+                        r#type: Type::Open,
                         custom_comment: Some("rust_transaction".into()),
                         expiration: 0,
                         offset: 0,
                         order: 0,
-                        price: 1.0512,
                         sl: 0.0,
-                        symbol: "EURUSD".into(),
                         tp: 0.0,
-                        r#type: Type::Open,
-                        volume: 0.01,
                     }
             }
         );
@@ -145,6 +151,22 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let transaction_response = 
         xapi_client.response_data::<TradeTransactionResponse>(&trade_transaction).await?;
     println!("Transaction response: {:?}", transaction_response);
+    */
+
+    /*
+    //Read opened transaction
+    let trade_transaction_status =
+        Request::TradeTransactionStatus(
+            TradeTransactionStatus {
+                order: 697096516,
+            }
+        );
+
+    let transaction_status =
+        xapi_client.response_data::<TradeTransactionStatusResponse>(&trade_transaction_status).await?;
+    thread::sleep(Duration::from_millis(200));
+    println!("Transaction status response: {:#?}", transaction_status);
+    */
 
     //Get commission_def
     let get_commission_def = 
@@ -153,10 +175,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 symbol: "RHM.DE_9".into(), 
                 volume: 20000000.0, 
             } 
-    );
+        );
 
     let commission_def = 
         xapi_client.response_data::<GetCommissionDefResponse>(&get_commission_def).await?; 
+    thread::sleep(Duration::from_millis(200));
     println!("Commission def: {:?}", commission_def);
     println!("Commission def: {:?}", commission_def.return_data.commission);
 
@@ -170,22 +193,41 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
   //  xapi_client.execute_command(&get_current_user_data).await?;
     let get_current_user_data_response = 
         xapi_client.response_data::<GetCurrentUserDataResponse>(&get_current_user_data).await?;
+    thread::sleep(Duration::from_millis(200));
 
     println!("GetCurrentUserData:\n{:?}", get_current_user_data_response);
 
-    /*
-    Stream commands
-     */
+    /*###################
+        Stream commands
+     ###################*/
+
+    let request_stream = RequestStream::GetBalance(
+        GetBalance {
+            stream_session_id: String::from(&response_login.stream_session_id).into(),
+        }
+    );
+    xapi_client_stream.execute_command(&request_stream).await?;
+    thread::sleep(Duration::from_millis(200));
+
+    let request_stream = RequestStream::GetKeepAlive(
+        GetKeepAlive {
+            stream_session_id: String::from(&response_login.stream_session_id).into(),
+        }
+    );
+    xapi_client_stream.execute_command(&request_stream).await?;
+    thread::sleep(Duration::from_millis(200));
     
     let request_stream = RequestStream::GetTickPrices(
         GetTickPrices {
             stream_session_id: String::from(&response_login.stream_session_id).into(),
-            symbol: "RHM.DE_9".into(),
+            //symbol: "RHM.DE_9".into(),
+            symbol: "EURUSD".into(),
             min_arrival_time: Some(5000),
             max_level: Some(1), 
         }
     );
     xapi_client_stream.execute_command(&request_stream).await?;
+    thread::sleep(Duration::from_millis(200));
 
     let request_stream = RequestStream::GetTrades(
         GetTrades {
@@ -193,6 +235,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         }
     );
     xapi_client_stream.execute_command(&request_stream).await?;
+    thread::sleep(Duration::from_millis(200));
 
     let request_stream = RequestStream::GetTradeStatus(
         GetTradeStatus {
@@ -200,6 +243,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         }
     );
     xapi_client_stream.execute_command(&request_stream).await?;
+    thread::sleep(Duration::from_millis(200));
 
     let request_stream = RequestStream::GetCandles(
         GetCandles {
@@ -208,26 +252,14 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         }
     );
     xapi_client_stream.execute_command(&request_stream).await?;
+    thread::sleep(Duration::from_millis(200));
 
-    let request_stream = RequestStream::GetBalance(
-        GetBalance {
-            stream_session_id: String::from(&response_login.stream_session_id).into(),
-        }
-    );
-    xapi_client_stream.execute_command(&request_stream).await?;
-
-    let request_stream = RequestStream::GetKeepAlive(
-        GetKeepAlive {
-            stream_session_id: String::from(&response_login.stream_session_id).into(),
-        }
-    );
-    xapi_client_stream.execute_command(&request_stream).await?;
 
     tokio::spawn(async move {
         let mut buf = vec![0; RES_BUF_SIZE];
         let mut retries = 0;
         loop {
-            //thread::sleep(Duration::from_millis(200));
+            thread::sleep(Duration::from_millis(200));
             match xapi_client_stream.socket.read(&mut buf).await {
                 Ok(0) => {
                     println!("spawn 0");

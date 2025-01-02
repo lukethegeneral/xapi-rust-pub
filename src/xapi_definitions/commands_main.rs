@@ -9,6 +9,7 @@ impl ValidResponse for GetCommissionDefResponse{}
 impl ValidResponse for GetCurrentUserDataResponse{}
 impl ValidResponse for ErrorResponse{}
 impl ValidResponse for TradeTransactionResponse{}
+impl ValidResponse for TradeTransactionStatusResponse{}
 
 
 #[derive(Debug, Deserialize, Serialize)]
@@ -22,6 +23,7 @@ pub enum Request {
     GetCommissionDef(GetCommissionDef),
     GetCurrentUserData(GetCurrentUserData),
     TradeTransaction(TradeTransaction),
+    TradeTransactionStatus(TradeTransactionStatus),
 }
 
 #[derive(Debug, Deserialize, Serialize)]
@@ -151,6 +153,7 @@ pub struct TradeTransactionStatus {
 }
 
 #[derive(Debug, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct TradeTransactionStatusResponse {
     pub ask: f32,
     pub bid: f32,
