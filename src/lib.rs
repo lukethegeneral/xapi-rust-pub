@@ -117,12 +117,12 @@ impl XApiClient {
 //    pub async fn response_data <T: ValidResponse + Serialize + for<'de> Deserialize<'de>> (
     pub async fn response_data <T> (
         &mut self,
-        request: &Request,
+        //request: &Request,
     ) -> Result <GetResponse<T>, Box<dyn Error>> 
     where
         T: ValidResponse + Serialize + for<'de> Deserialize<'de>,
     {
-        self.execute_command(request).await?;
+        //self.execute_command(request).await?;
 
         match self.get_response::<T>(1024).await? {
             Response::Data(res) => {
