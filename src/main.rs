@@ -126,7 +126,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("Response raw <- {:?}", response_raw);
 
     //Open transaction
-    /*
     let trade_transaction = 
         Request::TradeTransaction(
             TradeTransaction {
@@ -134,7 +133,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                     TradeTransInfo {
                         symbol: "EURUSD".into(),
                         volume: 0.01,
-                        price: 1.05,
+                        price: 1.03,
                         cmd: Cmd::Buy,
                         r#type: Type::Open,
                         custom_comment: Some("rust_transaction".into()),
@@ -151,14 +150,12 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     xapi_client.execute_command(&trade_transaction).await?;
     let transaction_response = xapi_client.response_data::<TradeTransactionResponse>().await?;
     println!("Transaction response: {:?}", transaction_response);
-    */
 
-    /*
     //Read opened transaction
     let trade_transaction_status =
         Request::TradeTransactionStatus(
             TradeTransactionStatus {
-                order: 697096516,
+                order: transaction_response.return_data.order,
             }
         );
 
@@ -166,7 +163,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let transaction_status = xapi_client.response_data::<TradeTransactionStatusResponse>().await?;
     thread::sleep(Duration::from_millis(200));
     println!("Transaction status response: {:#?}", transaction_status);
-    */
 
     //Get commission_def
     let get_commission_def = 
