@@ -1,5 +1,5 @@
 use serde::{Deserialize, Serialize};
-use serde_repr::*;
+use serde_repr::{Serialize_repr, Deserialize_repr};
 
 #[derive(Debug, Deserialize_repr, Serialize_repr)]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]

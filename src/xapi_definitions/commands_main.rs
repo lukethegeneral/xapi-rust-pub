@@ -1,4 +1,4 @@
-use super::commands_common::{Cmd, Type};
+use super::commands_common::{Cmd, Type, RequestStatus};
 
 use serde::{Deserialize, Serialize};
 
@@ -8,6 +8,8 @@ impl ValidResponse for LoginResponse{}
 impl ValidResponse for GetCommissionDefResponse{}
 impl ValidResponse for GetCurrentUserDataResponse{}
 impl ValidResponse for ErrorResponse{}
+impl ValidResponse for TradeTransactionResponse{}
+impl ValidResponse for TradeTransactionStatusResponse{}
 
 
 #[derive(Debug, Deserialize, Serialize)]
@@ -20,6 +22,8 @@ pub enum Request {
     GetSymbol(GetSymbol),
     GetCommissionDef(GetCommissionDef),
     GetCurrentUserData(GetCurrentUserData),
+    TradeTransaction(TradeTransaction),
+    TradeTransactionStatus(TradeTransactionStatus),
 }
 
 #[derive(Debug, Deserialize, Serialize)]
@@ -119,10 +123,15 @@ pub struct GetCurrentUserDataResponse {
 #[derive(Debug, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct TradeTransaction {
+    pub trade_trans_info: TradeTransInfo,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+pub struct TradeTransInfo {
    pub  cmd: Cmd,
    #[serde(rename = "customComment")]
    pub  custom_comment: Option<String>,
-   pub  expiration: Option<u32>,
+   pub  expiration: u32,
    pub  offset: u16,
    pub  order: u32,
    pub  price: f32,
@@ -131,4 +140,26 @@ pub struct TradeTransaction {
    pub  tp: f32,
    pub  r#type: r#Type,
    pub  volume: f32, 
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+pub struct TradeTransactionResponse {
+    pub order: u32,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+pub struct TradeTransactionStatus {
+    pub order: u32,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct TradeTransactionStatusResponse {
+    pub ask: f32,
+    pub bid: f32,
+    #[serde(rename = "customComment")]
+    pub custom_comment: Option<String>,
+    pub message: Option<String>,
+    pub order: u32,
+    pub request_status: RequestStatus,
 }
