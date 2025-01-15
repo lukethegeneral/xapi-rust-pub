@@ -179,7 +179,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     xapi_client.execute_command(&get_commission_def).await?;
     let commission_def = xapi_client.response_data::<GetCommissionDefResponse>().await?;
-        //xapi_client.response_data::<GetCommissionDefResponse>(&get_commission_def).await?; 
     thread::sleep(Duration::from_millis(200));
     println!("Commission def: {:?}", commission_def.return_data.commission);
 
@@ -192,7 +191,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     xapi_client.execute_command(&get_current_user_data).await?;
     let get_current_user_data_response = xapi_client.response_data::<GetCurrentUserDataResponse>().await?;
-        //xapi_client.response_data::<GetCurrentUserDataResponse>(&get_current_user_data).await?;
     thread::sleep(Duration::from_millis(200));
 
     println!("GetCurrentUserData:\n{:?}", get_current_user_data_response);
@@ -200,7 +198,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /*###################
         Stream commands
      ###################*/
-/*
+
     let request_stream = RequestStream::GetBalance(
         GetBalance {
             stream_session_id: String::from(&response_login.stream_session_id).into(),
@@ -217,15 +215,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     xapi_client_stream.execute_command(&request_stream).await?;
     thread::sleep(Duration::from_millis(200));
 
-    let req = json!({
-        "command": "getCandles",
-        "streamSessionId": String::from(&response_login.stream_session_id),
-        "symbol": "USDCHF",
-    });
-    println!("\nRequest-> {}", req);
-    xapi_client_stream.socket.write_all(&req.to_string().as_bytes()).await?;
-    thread::sleep(Duration::from_millis(200));
-*/
     let request_stream = RequestStream::GetCandles(
         GetCandles {
             stream_session_id: String::from(&response_login.stream_session_id).into(),
@@ -303,13 +292,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                                                             , tick.data.high
                                                         );
                                             }
-                                            /*
                                             ResponseStream::Candle(candle) => {
                                                 println!("Candles [{}]"
                                                             , candle.data.open
                                                         );
                                             }
-                                            */
                                             ResponseStream::KeepAlive(keep) => {
                                                 println!("Keep alive [timestamp][{}][{}]"
                                                             , keep.data.timestamp
