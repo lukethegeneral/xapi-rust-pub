@@ -52,5 +52,5 @@ pub enum Period {
     PeriodH4 = 240,
     PeriodD1 = 1440,
     PeriodW1 = 10080,
-    PeriodMN1 = 43200,
+    PeriodMn1 = 43200,
 }

@@ -235,6 +235,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("GetCharLastRequest:{:?}\n", request);
     xapi_client.execute_command(&request).await?;
     let get_chart_last_response = xapi_client.response_data::<GetChartLastResponse>().await?;
+    println!("GetChartLast:{:#?}\n", get_chart_last_response.return_data);
     for i in &get_chart_last_response.return_data.rate_infos {
         //println!("GetChartLast:{:?}\n", get_chart_last_response.return_data.rate_infos);
         println!("GetChartLast:{:?}\n", i.close);
