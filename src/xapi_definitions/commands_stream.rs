@@ -46,7 +46,7 @@ pub struct GetCandlesResponse {
     pub high: f32,
     pub low: f32,
     pub open: f32,
-    pub quote_id: i32,
+    pub quote_id: u16,
     pub symbol: String,
     pub vol: f32, 
 }
@@ -99,7 +99,7 @@ pub struct GetTickPricesResponse {
     pub high: f32,
     pub level: i32,
     pub low: f32,
-    pub quote_id: i32,
+    pub quote_id: u16,
     pub spread_raw: f32,
     pub spread_table: f32,
     pub symbol: String,

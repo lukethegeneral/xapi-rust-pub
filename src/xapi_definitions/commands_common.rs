@@ -39,3 +39,18 @@ pub enum RequestStatus {
     Accepted = 3,
     Rejected = 4,
 }
+
+#[derive(Debug, Deserialize_repr, Serialize_repr)]
+#[serde(rename_all = "SCREAMING_SNAKE_CASE")]
+#[repr(u16)]
+pub enum Period {
+    PeriodM1 = 1,
+    PeriodM5 = 5,
+    PeriodM15 = 15,
+    PeriodM30 = 30,
+    PeriodH1 = 60,
+    PeriodH4 = 240,
+    PeriodD1 = 1440,
+    PeriodW1 = 10080,
+    PeriodMN1 = 43200,
+}

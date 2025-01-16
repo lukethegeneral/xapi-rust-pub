@@ -1,4 +1,4 @@
-use super::commands_common::{Cmd, Type, RequestStatus};
+use super::commands_common::{Cmd, Type, Period, RequestStatus};
 
 use serde::{Deserialize, Serialize};
 
@@ -10,6 +10,8 @@ impl ValidResponse for GetCurrentUserDataResponse{}
 impl ValidResponse for ErrorResponse{}
 impl ValidResponse for TradeTransactionResponse{}
 impl ValidResponse for TradeTransactionStatusResponse{}
+impl ValidResponse for GetChartLastResponse{}
+impl ValidResponse for GetServerTimeResponse{}
 
 
 #[derive(Debug, Deserialize, Serialize)]
@@ -18,12 +20,13 @@ pub enum Request {
     Login(LoginRequest),
     Logout(LogoutRequest),
     GetMarginTrade(GetMarginTradeRequest),
-    GetChartLast(GetChartLastRequest),
+    GetChartLastRequest(GetChartLastRequest),
     GetSymbol(GetSymbol),
     GetCommissionDef(GetCommissionDef),
     GetCurrentUserData(GetCurrentUserData),
     TradeTransaction(TradeTransaction),
     TradeTransactionStatus(TradeTransactionStatus),
+    GetServerTime(GetServerTime),
 }
 
 #[derive(Debug, Deserialize, Serialize)]
@@ -80,9 +83,44 @@ pub struct GetMarginTradeRequest {
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct GetChartLastRequest {
-    pub period: u32,
-    pub start: u32,
+    pub info: GetChartLastInfo,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+pub struct GetChartLastInfo {
+    pub period: Period,
+    pub start: i64,
     pub symbol: String,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct GetChartLastResponse {
+    pub digits: u16,
+    pub rate_infos: Vec<GetChartLastRateInfo>,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct GetChartLastRateInfo {
+    pub close: f32,
+    pub ctm: i32,
+    pub ctm_string: String,
+    pub high: f32,
+    pub low: f32,
+    pub open: f32,
+    pub vol: f32,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+pub struct GetServerTime {
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct GetServerTimeResponse {
+    pub time: i64,
+    pub time_string: String,
 }
 
 #[derive(Debug, Deserialize, Serialize)]

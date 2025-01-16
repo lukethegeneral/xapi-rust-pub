@@ -1,11 +1,13 @@
+use chrono::DateTime;
+use chrono::Local;
 use serde_json::json;
 use xtb::timestamp_to_datetime;
 use xtb::xapi_definitions::commands_common::*;
 use xtb::xapi_definitions::commands_main::*;
 use xtb::xapi_definitions::commands_stream::*;
-//use xtb::xapi_definitions::Execute;
 use std::thread;
 use std::time::Duration;
+use tokio::time::sleep;
 
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
 
@@ -70,7 +72,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             }
             Err(e) => {
                 eprintln!("Failed to write to socket [{}]; err = {:?}", i, e);
-                thread::sleep(Duration::from_millis(200));
+                sleep(Duration::from_millis(200)).await;
                 if i < MAX_RETRIES {
                     continue;
                 } else {
@@ -93,7 +95,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     });
     println!("\nRequest-> {}", req);
     xapi_client.socket.write_all(&req.to_string().as_bytes()).await?;
-    thread::sleep(Duration::from_millis(200));
+    sleep(Duration::from_millis(200)).await;
 
     let mut buf = vec![0; 1024];
     let n = xapi_client.socket.read(&mut buf).await?;
@@ -106,7 +108,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         }
     );
     xapi_client.execute_command(&get_symbol).await?;
-    thread::sleep(Duration::from_millis(200));
+    sleep(Duration::from_millis(200)).await;
     let mut response_raw = String::new(); 
     xapi_client.get_response_raw(&mut response_raw, 1024).await?;
     println!("Response raw <- {:?}", response_raw);
@@ -120,11 +122,12 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("Request {:?}", get_symbol);
 
     xapi_client.execute_command(&get_symbol).await?;
-    thread::sleep(Duration::from_millis(200));
+    sleep(Duration::from_millis(200)).await;
     let mut response_raw = String::new(); 
     xapi_client.get_response_raw(&mut response_raw, 1024).await?;
     println!("Response raw <- {:?}", response_raw);
 
+    /*
     //Open transaction
     let trade_transaction = 
         Request::TradeTransaction(
@@ -161,8 +164,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     xapi_client.execute_command(&trade_transaction_status).await?;
     let transaction_status = xapi_client.response_data::<TradeTransactionStatusResponse>().await?;
-    thread::sleep(Duration::from_millis(200));
+    sleep(Duration::from_millis(200)).await;
     println!("Transaction status response: {:#?}", transaction_status);
+*/
 
     //Get commission_def
     let get_commission_def = 
@@ -175,11 +179,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     xapi_client.execute_command(&get_commission_def).await?;
     let commission_def = xapi_client.response_data::<GetCommissionDefResponse>().await?;
-    thread::sleep(Duration::from_millis(200));
+    sleep(Duration::from_millis(200)).await;
     println!("Commission def: {:?}", commission_def.return_data.commission);
 
     //GetCurrentUserData 
-    thread::sleep(Duration::from_millis(200));
+    sleep(Duration::from_millis(200)).await;
     let get_current_user_data = 
         Request::GetCurrentUserData (
             GetCurrentUserData {} 
@@ -187,7 +191,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     xapi_client.execute_command(&get_current_user_data).await?;
     let get_current_user_data_response = xapi_client.response_data::<GetCurrentUserDataResponse>().await?;
-    thread::sleep(Duration::from_millis(200));
+    sleep(Duration::from_millis(200)).await;
 
     println!("GetCurrentUserData:\n{:?}", get_current_user_data_response);
 
@@ -195,13 +199,14 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         Stream commands
      ###################*/
 
+/*
     let request_stream = RequestStream::GetBalance(
         GetBalance {
             stream_session_id: String::from(&response_login.stream_session_id).into(),
         }
     );
     xapi_client_stream.execute_command(&request_stream).await?;
-    thread::sleep(Duration::from_millis(200));
+    sleep(Duration::from_millis(200)).await;
 
     let request_stream = RequestStream::GetKeepAlive(
         GetKeepAlive {
@@ -209,7 +214,32 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         }
     );
     xapi_client_stream.execute_command(&request_stream).await?;
-    thread::sleep(Duration::from_millis(200));
+    sleep(Duration::from_millis(200)).await;
+*/
+
+    let request = Request::GetServerTime ( GetServerTime {} ); 
+    xapi_client.execute_command(&request).await?;
+    let get_server_time = xapi_client.response_data::<GetServerTimeResponse>().await?;
+    println!("Server time:{:?}\n", get_server_time);
+    sleep(Duration::from_millis(200)).await;
+
+    let request = Request::GetChartLastRequest (
+            GetChartLastRequest {
+                info: GetChartLastInfo {
+                    period: Period::PeriodM1,
+                    symbol: "EURUSD".into(),
+                    start: get_server_time.return_data.time,
+                }
+            } 
+        ); 
+    println!("GetCharLastRequest:{:?}\n", request);
+    xapi_client.execute_command(&request).await?;
+    let get_chart_last_response = xapi_client.response_data::<GetChartLastResponse>().await?;
+    for i in &get_chart_last_response.return_data.rate_infos {
+        //println!("GetChartLast:{:?}\n", get_chart_last_response.return_data.rate_infos);
+        println!("GetChartLast:{:?}\n", i.close);
+    }
+    sleep(Duration::from_millis(200)).await;
 
     let request_stream = RequestStream::GetCandles(
         GetCandles {
@@ -218,7 +248,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         }
     );
     xapi_client_stream.execute_command(&request_stream).await?;
-    thread::sleep(Duration::from_millis(200));
+    sleep(Duration::from_millis(200)).await;
 
     let request_stream = RequestStream::GetTickPrices(
         GetTickPrices {
@@ -229,7 +259,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         }
     );
     xapi_client_stream.execute_command(&request_stream).await?;
-    thread::sleep(Duration::from_millis(200));
+    sleep(Duration::from_millis(200)).await;
 
     let request_stream = RequestStream::GetTickPrices(
         GetTickPrices {
@@ -240,7 +270,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         }
     );
     xapi_client_stream.execute_command(&request_stream).await?;
-    thread::sleep(Duration::from_millis(200));
+    sleep(Duration::from_millis(200)).await;
 
     let request_stream = RequestStream::GetTrades(
         GetTrades {
@@ -248,7 +278,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         }
     );
     xapi_client_stream.execute_command(&request_stream).await?;
-    thread::sleep(Duration::from_millis(200));
+    sleep(Duration::from_millis(200)).await;
 
     let request_stream = RequestStream::GetTradeStatus(
         GetTradeStatus {
@@ -256,13 +286,13 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         }
     );
     xapi_client_stream.execute_command(&request_stream).await?;
-    thread::sleep(Duration::from_millis(200));
+    sleep(Duration::from_millis(200)).await;
 
     let join_handle = tokio::task::spawn(async move {
         let mut buf = vec![0; RES_BUF_SIZE];
         let mut retries = 0;
         loop {
-            thread::sleep(Duration::from_millis(200));
+            //sleep(Duration::from_millis(200)).await;
             match xapi_client_stream.socket.read(&mut buf).await {
                 Ok(0) => {
                     println!("spawn 0");
@@ -289,8 +319,13 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                                                         );
                                             }
                                             ResponseStream::Candle(candle) => {
-                                                println!("Candles [{}]"
+                                                println!("Candles [{}] [open]: {}, [close] : {}, [low]: {}, [high]: {}, [vol]: {}"
+                                                            , candle.data.symbol
                                                             , candle.data.open
+                                                            , candle.data.close
+                                                            , candle.data.low
+                                                            , candle.data.high
+                                                            , candle.data.vol
                                                         );
                                             }
                                             ResponseStream::KeepAlive(keep) => {
